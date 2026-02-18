@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] 2026-02-18
+### Added
+- Added `tags` to API response as an array of normalized post tag names.
+### Changed
+- Changed endpoint lookup from post slug to numeric post ID.
+- Updated route from `GET /post/{slug}` to `GET /post/{id}`.
+
 ## [1.0.0] 2026-02-18
 ### Added
 - Initial release.
@@ -14,5 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `subtitle` support via ACF field `sottotitolo` with post meta fallback.
 - `volume` resolution from `cz_volume_items` using primary-volume-first logic.
 
-[Unreleased]: https://github.com/erremauro/cz-article-api/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/erremauro/cz-article-api/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/erremauro/cz-article-api/releases/tag/v1.1.0
 [1.0.0]: https://github.com/erremauro/cz-article-api/releases/tag/v1.0.0

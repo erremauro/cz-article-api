@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CZ Article API
  * Description: API pubblica per esporre i contenuti dei post in formato JSON.
- * Version: 1.0.0
+ * Version: 1.2.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: CZ
@@ -21,14 +21,14 @@ class CZ_Article_API {
 	public function register_routes() {
 		register_rest_route(
 			'cz-article-api/v1',
-			'/post/(?P<slug>[^/]+)',
+			'/post/(?P<id>\d+)',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_post_by_slug' ),
+				'callback'            => array( $this, 'get_post_by_id' ),
 				'permission_callback' => '__return_true',
 				'args'                => array(
-					'slug' => array(
-						'sanitize_callback' => 'sanitize_title',
+					'id' => array(
+						'sanitize_callback' => 'absint',
 						'required'          => true,
 					),
 				),
@@ -36,18 +36,18 @@ class CZ_Article_API {
 		);
 	}
 
-	public function get_post_by_slug( WP_REST_Request $request ) {
-		$slug = (string) $request->get_param( 'slug' );
+	public function get_post_by_id( WP_REST_Request $request ) {
+		$post_id = absint( $request->get_param( 'id' ) );
 
-		if ( '' === $slug ) {
+		if ( ! $post_id ) {
 			return new WP_Error(
-				'cz_article_api_invalid_slug',
-				__( 'Slug non valido.', 'cz-article-api' ),
+				'cz_article_api_invalid_id',
+				__( 'ID post non valido.', 'cz-article-api' ),
 				array( 'status' => 400 )
 			);
 		}
 
-		$post = $this->find_published_post_by_slug( $slug );
+		$post = $this->find_published_post_by_id( $post_id );
 		if ( ! $post ) {
 			return new WP_Error(
 				'cz_article_api_not_found',
@@ -66,31 +66,22 @@ class CZ_Article_API {
 				'subtitle' => '' !== $subtitle ? $subtitle : null,
 				'content'  => apply_filters( 'the_content', $post->post_content ),
 				'volume'   => '' !== $volume ? $volume : null,
+				'tags'     => $this->get_tags( $post->ID ),
 			)
 		);
 	}
 
-	private function find_published_post_by_slug( $slug ) {
-		$query = new WP_Query(
-			array(
-				'name'                   => $slug,
-				'post_type'              => 'post',
-				'post_status'            => 'publish',
-				'posts_per_page'         => 1,
-				'ignore_sticky_posts'    => true,
-				'no_found_rows'          => true,
-				'cache_results'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		if ( empty( $query->posts ) ) {
+	private function find_published_post_by_id( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! ( $post instanceof WP_Post ) ) {
 			return null;
 		}
 
-		$post = $query->posts[0];
-		return $post instanceof WP_Post ? $post : null;
+		if ( 'post' !== $post->post_type || 'publish' !== $post->post_status ) {
+			return null;
+		}
+
+		return $post;
 	}
 
 	private function get_author_name( WP_Post $post ) {
@@ -166,6 +157,32 @@ class CZ_Article_API {
 
 		$volume_title = get_the_title( $volume_id );
 		return is_string( $volume_title ) ? $this->normalize_plain_text( $volume_title ) : '';
+	}
+
+	private function get_tags( $post_id ) {
+		$post_id = absint( $post_id );
+		if ( ! $post_id ) {
+			return array();
+		}
+
+		$terms = get_the_terms( $post_id, 'post_tag' );
+		if ( is_wp_error( $terms ) || ! is_array( $terms ) ) {
+			return array();
+		}
+
+		$tags = array();
+		foreach ( $terms as $term ) {
+			if ( ! ( $term instanceof WP_Term ) ) {
+				continue;
+			}
+
+			$name = $this->normalize_plain_text( $term->name );
+			if ( '' !== $name ) {
+				$tags[] = $name;
+			}
+		}
+
+		return array_values( array_unique( $tags ) );
 	}
 
 	private function normalize_plain_text( $value ) {

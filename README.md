@@ -1,13 +1,13 @@
 # CZ Article API
 
-**CZ Article API** espone un endpoint REST pubblico per ottenere il contenuto di un singolo post tramite slug, in formato JSON.
+**CZ Article API** espone un endpoint REST pubblico per ottenere il contenuto di un singolo post tramite ID, in formato JSON.
 
 ---
 
 ## Funzionalita principali
 
-- Endpoint pubblico `GET` basato su slug.
-- Risposta normalizzata con autore, titolo, sottotitolo, contenuto HTML e volume principale.
+- Endpoint pubblico `GET` basato su post ID.
+- Risposta normalizzata con autore, titolo, sottotitolo, contenuto HTML, volume principale e tag.
 - Supporto ACF per `sottotitolo` con fallback su `post_meta`.
 - Integrazione con `cz-volume` per recuperare il titolo del volume principale.
 
@@ -32,11 +32,11 @@
 
 Namespace: `cz-article-api/v1`
 
-- `GET /post/{slug}`
+- `GET /post/{id}`
 
 Esempio:
 
-`/wp-json/cz-article-api/v1/post/il-mio-slug`
+`/wp-json/cz-article-api/v1/post/123`
 
 ---
 
@@ -48,7 +48,8 @@ Esempio:
   "title": "Titolo Post",
   "subtitle": "Sottotitolo opzionale",
   "content": "<p>Contenuto HTML del post...</p>",
-  "volume": "Titolo Volume Principale"
+  "volume": "Titolo Volume Principale",
+  "tags": ["Zen", "Bodhidharma"]
 }
 ```
 
@@ -56,10 +57,11 @@ Note:
 
 - `subtitle` puo essere `null` se non presente.
 - `volume` puo essere `null` se il post non e associato a un volume.
+- `tags` e sempre un array; e vuoto se il post non ha tag.
 
 ---
 
 ## Errori
 
-- `400` slug non valido
+- `400` ID post non valido
 - `404` post non trovato
