@@ -2,10 +2,10 @@
 /**
  * Plugin Name: CZ Article API
  * Description: API pubblica per esporre i contenuti dei post in formato JSON.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
- * Author: CZ
+ * Author: Roberto Mauro
  * Text Domain: cz-article-api
  */
 
